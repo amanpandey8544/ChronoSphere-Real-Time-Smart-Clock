@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ultimate Digital Clock</title>
+
+<style>
+:root{
+    --bg: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    --card: rgba(255,255,255,0.15);
+    --text: #00fff0;
+}
+.light{
+    --bg: linear-gradient(135deg,#fdfbfb,#ebedee);
+    --card: rgba(0,0,0,0.1);
+    --text:#333;
+}
+.neon{
+    --bg: radial-gradient(circle,#000,#020024);
+    --card: rgba(0,255,255,0.1);
+    --text:#0ff;
+}
+
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:var(--bg);
+    font-family:Segoe UI;
+}
+
+.clock{
+    width:380px;
+    padding:25px;
+    border-radius:25px;
+    background:var(--card);
+    backdrop-filter:blur(15px);
+    box-shadow:0 30px 70px rgba(0,0,0,0.5);
+    text-align:center;
+    color:var(--text);
+}
+
+.time{
+    font-size:48px;
+    font-weight:bold;
+    letter-spacing:3px;
+    text-shadow:0 0 20px var(--text);
+}
+
+.seconds{
+    animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+    0%{opacity:1}
+    50%{opacity:0.5}
+    100%{opacity:1}
+}
+
+.date{ margin-top:8px; }
+.greet{ margin:12px 0; font-size:18px; }
+
+select, input, button{
+    width:100%;
+    padding:8px;
+    margin-top:8px;
+    border:none;
+    border-radius:10px;
+}
+
+button{
+    cursor:pointer;
+    background:#1dd1a1;
+    color:white;
+    transition:0.3s;
+}
+button:hover{ transform:scale(1.05); }
+
+.row{
+    display:flex;
+    gap:5px;
+}
+.row button{ flex:1; }
+</style>
+</head>
+
+<body>
+
+<div class="clock">
+    <div class="time" id="time">00:00:00</div>
+    <div class="date" id="date"></div>
+    <div class="greet" id="greet"></div>
+
+    <select id="zone" onchange="updateClock()">
+        <option value="0">🇮🇳 India</option>
+        <option value="-10.5">🇺🇸 USA</option>
+        <option value="-4.5">🇬🇧 UK</option>
+        <option value="3.5">🇯🇵 Japan</option>
+    </select>
+
+    <input type="time" id="alarm">
+    <button onclick="setAlarm()">Set Alarm 🔔</button>
+
+    <div class="row">
+        <button onclick="toggleFormat()">12 / 24</button>
+        <button onclick="toggleTheme()">Theme 🎨</button>
+    </div>
+</div>
+
+<audio id="alarmSound">
+    <source src="https://www.soundjay.com/clock/sounds/alarm-clock-01.mp3">
+</audio>
+
+<script>
+let is24 = false;
+let alarmTime = "";
+let themes = ["", "light", "neon"];
+let tIndex = 0;
+
+function updateClock(){
+    let now = new Date();
+    let offset = parseFloat(document.getElementById("zone").value);
+    now.setMinutes(now.getMinutes() + offset*60);
+
+    let h = now.getHours();
+    let m = now.getMinutes();
+    let s = now.getSeconds();
+
+    let session = "";
+    if(!is24){
+        session = h >= 12 ? " PM" : " AM";
+        h = h % 12 || 12;
+    }
+
+    h = h < 10 ? "0"+h : h;
+    m = m < 10 ? "0"+m : m;
+    s = s < 10 ? "0"+s : s;
+
+    document.getElementById("time").innerHTML =
+        `${h}:${m}:<span class="seconds">${s}</span>${session}`;
+
+    const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    document.getElementById("date").innerText =
+        `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+    setGreeting(now.getHours());
+
+    if(alarmTime === `${h}:${m}`){
+        document.getElementById("alarmSound").play();
+        alarmTime="";
+    }
+}
+
+function setGreeting(hr){
+    let g="Hello 👋";
+    if(hr<12) g="Good Morning 🌅";
+    else if(hr<17) g="Good Afternoon ☀";
+    else if(hr<21) g="Good Evening 🌆";
+    else g="Good Night 🌙";
+    document.getElementById("greet").innerText=g;
+}
+
+function toggleFormat(){ is24 = !is24; }
+
+function toggleTheme(){
+    tIndex = (tIndex+1)%themes.length;
+    document.body.className = themes[tIndex];
+}
+
+function setAlarm(){
+    alarmTime = document.getElementById("alarm").value;
+    alert("Alarm Set Successfully!");
+}
+
+setInterval(updateClock,1000);
+updateClock();
+</script>
+
+</body>
+</html>
